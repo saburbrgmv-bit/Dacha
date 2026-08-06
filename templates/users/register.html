@@ -91,15 +91,12 @@
     border-radius:10px;padding:12px 14px;font-size:14.5px;font-family:inherit;color:var(--ink-900);
   }
   .field input:focus{outline:none;border-color:var(--lake-500);}
-  .field .hint{font-size:11.5px;color:var(--ink-600);margin-top:5px;}
-
-  .terms{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;color:var(--ink-600);margin:6px 0 20px;}
-  .terms input{margin-top:2px;}
 
   .submit{
     width:100%;background:var(--gold-500);color:var(--pine-950);
     border:none;border-radius:10px;padding:14px;font-weight:700;font-size:15px;
     transition:background .2s, transform .2s;
+    cursor:pointer;
   }
   .submit:hover{background:var(--gold-600);transform:translateY(-1px);}
 
@@ -156,17 +153,20 @@
   <div class="form-col">
     <div class="form-view" id="formView">
       <h2>Hisob yarating</h2>
-      <div class="sub">Hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a></div>
+      <div class="sub">Hisobingiz bormi? <a href="#">Kirish</a></div>
 
       <form id="registerForm" onsubmit="return handleRegister(event)">
-
-        <div class="field">
+        <div class="row2">
           <div class="field">
             <label>Ism</label>
-            <input type="text" id="firstName" placeholder="Ism kiriting" required>
+            <input type="text" id="firstName" placeholder="Ismingiz" required>
           </div>
-
+          <div class="field">
+            <label>Familiya</label>
+            <input type="text" id="lastName" placeholder="Familiyangiz" required>
+          </div>
         </div>
+
         <div class="field">
           <label>Email</label>
           <input type="email" id="regEmail" placeholder="Email kiriting" required>
@@ -197,16 +197,17 @@
       </div>
       <h2>Xush kelibsiz, <span id="successName"></span>!</h2>
       <p>Hisobingiz muvaffaqiyatli yaratildi. Endi dachalarni ko'rib chiqib, bron qilishni boshlashingiz mumkin.</p>
-      <a href="index.html" class="submit" style="display:block;text-decoration:none;">Dachalarni ko'rish</a>
+      <a href="{% url 'cottage_list' %}" class="submit" style="display:block;text-decoration:none;text-align:center;">Dachalarni ko'rish</a>
     </div>
   </div>
 </div>
 
 <script>
-async function handleRegister(e){
+function handleRegister(e){
   e.preventDefault();
   const msg = document.getElementById('registerMsg');
-  msg.className = 'form-msg'; msg.textContent = '';
+  msg.className = 'form-msg';
+  msg.textContent = '';
 
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();
@@ -224,18 +225,19 @@ async function handleRegister(e){
   const name = (firstName + ' ' + lastName).trim();
 
   try{
-    let existing = null;
-    try{ existing = await window.storage.get('user:' + email); }catch(_){ existing = null; }
+    // Standart localStorage ishlatildi
+    let existing = localStorage.getItem('user:' + email);
     if(existing){
       msg.className = 'form-msg error';
-      msg.textContent = 'Bu email allaqachon ro\'yxatdan o\'tgan. Kirish sahifasidan foydalaning.';
+      msg.textContent = 'Bu email allaqachon ro\'yxatdan o\'tgan.';
       return false;
     }
 
     const user = { name, email, phone, password };
-    await window.storage.set('user:' + email, JSON.stringify(user));
-    await window.storage.set('session:current', email);
+    localStorage.setItem('user:' + email, JSON.stringify(user));
+    localStorage.setItem('session:current', email);
 
+    // Muvaffaqiyatli o'tish oynasi
     document.getElementById('formView').classList.add('hidden');
     document.getElementById('successView').classList.add('active');
     document.getElementById('successName').textContent = firstName || name;

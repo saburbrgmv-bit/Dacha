@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kirish — Dacha.uz</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -92,13 +94,14 @@
   .row-between{display:flex;justify-content:space-between;align-items:center;margin:2px 0 22px;font-size:13px;}
   .remember{display:flex;align-items:center;gap:8px;color:var(--ink-600);}
   .remember input{accent-color:var(--pine-700);width:15px;height:15px;}
-  .forgot{color:var(--lake-500);font-weight:700;}
+  .forgot{color:var(--lake-500);font-weight:700;text-decoration:none;}
   .forgot:hover{text-decoration:underline;}
 
   .submit{
     width:100%;background:var(--gold-500);color:var(--pine-950);
     border:none;border-radius:10px;padding:14px;font-weight:700;font-size:15px;
     transition:background .2s, transform .2s;
+    cursor:pointer;
   }
   .submit:hover{background:var(--gold-600);transform:translateY(-1px);}
 
@@ -162,24 +165,22 @@
       <form id="loginForm" onsubmit="return handleLogin(event)">
         <div class="field">
           <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="siz@misol.uz" required>
+          <input type="email" id="loginEmail" placeholder="Email kiriting" required>
         </div>
         <div class="field">
           <label>Parol</label>
-          <input type="password" id="loginPassword" placeholder="••••••••" required>
+          <input type="password" id="loginPassword" placeholder="Parol kiriting" required>
         </div>
 
-        <div class="row-between">
-          <label class="remember">
-            <input type="checkbox" id="rememberMe" checked>
-            Meni eslab qol
-          </label>
-          <a href="#" class="forgot">Parolni unutdingizmi?</a>
-        </div>
 
         <button type="submit" class="submit">Kirish</button>
         <div class="form-msg" id="loginMsg"></div>
       </form>
+
+      <div class="d-flex justify-content-around">
+
+          <a href="#" class="forgot">Parolni unutdingizmi?</a>
+        </div>
 
       <div class="divider">yoki</div>
       <div class="demo-note">Bu — demo tizim. Avval <a href="register.html" style="color:var(--lake-500);font-weight:700;">ro'yxatdan o'ting</a>, so'ng shu email va parol bilan kiring.</div>
@@ -191,40 +192,46 @@
       </div>
       <h2>Xush kelibsiz, <span id="successName"></span>!</h2>
       <p>Muvaffaqiyatli kirdingiz. Endi dachalarni ko'rib chiqib, bron qilishingiz mumkin.</p>
-      <a href="index.html" class="submit" style="display:block;text-decoration:none;">Bosh sahifaga o'tish</a>
+      <a href="{% url 'cottage_list' %}" class="submit" style="display:block;text-decoration:none;text-align:center;">Bosh sahifaga o'tish</a>
     </div>
   </div>
 </div>
 
 <script>
-async function handleLogin(e){
+function handleLogin(e){
   e.preventDefault();
   const msg = document.getElementById('loginMsg');
-  msg.className = 'form-msg'; msg.textContent = '';
+  msg.className = 'form-msg';
+  msg.textContent = '';
 
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
 
   try{
-    let result = null;
-    try{ result = await window.storage.get('user:' + email); }catch(_){ result = null; }
+    // Standart localStorage ishlatilmoqda
+    const result = localStorage.getItem('user:' + email);
+
     if(!result){
       msg.className = 'form-msg error';
       msg.textContent = 'Bunday hisob topilmadi. Avval ro\'yxatdan o\'ting.';
       return false;
     }
-    const user = JSON.parse(result.value);
+
+    const user = JSON.parse(result);
     if(user.password !== password){
       msg.className = 'form-msg error';
       msg.textContent = 'Parol noto\'g\'ri. Qayta urinib ko\'ring.';
       return false;
     }
 
-    await window.storage.set('session:current', email);
+    // Sessiyani saqlash
+    localStorage.setItem('session:current', email);
 
+    // Muvaffaqiyatli kirish oynasini ko'rsatish
     document.getElementById('formView').classList.add('hidden');
     document.getElementById('successView').classList.add('active');
-    document.getElementById('successName').textContent = user.name.split(' ')[0];
+    document.getElementById('successName').textContent = user.name ? user.name.split(' ')[0] : 'Foydalanuvchi';
+
   }catch(err){
     msg.className = 'form-msg error';
     msg.textContent = 'Xatolik yuz berdi. Birozdan so\'ng qayta urinib ko\'ring.';

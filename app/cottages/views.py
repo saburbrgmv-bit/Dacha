@@ -13,5 +13,5 @@ class CottageListView(ListView):
 class CottageCreateView(CreateView):
   model = Cottage
   form_class = CottageForm
-  template_name = 'cottage/create.html'
+  template_name = 'cottage/cottage_create.html'
   success_url = reverse_lazy('cottage_list')
